@@ -119,8 +119,8 @@ def optimal_BST(p, q, KEYS_COUNT):
                               columns=range_inclusive(1, KEYS_COUNT),
                               dtype=int)
 
-    for x in tqdm(iterable=range_inclusive(1, KEYS_COUNT)):  # riadky matice 1..n
-        for i in range_inclusive(1, KEYS_COUNT - x + 1):  # stlpce matice 1..n-x+1
+    for x in tqdm(iterable=range_inclusive(1, KEYS_COUNT)):  # stlpce matice 1..n
+        for i in range_inclusive(1, KEYS_COUNT - x + 1):  # riadky matice 1..n-x+1
             j = i + x - 1  # posunutie nad diagonalu matice
             COST_TABLE.at[i, j] = np.inf
 
@@ -132,9 +132,9 @@ def optimal_BST(p, q, KEYS_COUNT):
 
                 cost_left = COST_TABLE.at[i, root_tmp - 1]  # cena laveho podstromu (bunka vlavo)
                 cost_right = COST_TABLE.at[root_tmp + 1, j]  # cena praveho podstromu (bunka dole)
-                probability_current = PROBABILITY_SUM_TABLE.at[i, j]  # suma pravdepodobnosti pre aktualny uzol
+                probability_current = PROBABILITY_SUM_TABLE.at[i, j]  # suma pravdepodobnosti pre aktualny interval
 
-                # nova cena = cena laveho podstromu + praveho podstromu + pravdepodobnost aktualneho uzla
+                # nova cena = cena laveho podstromu + praveho podstromu + pravdepodobnost aktualneho intervalu
                 cost_tmp = cost_left + cost_right + probability_current
 
                 # najde sa minimum z aktualnej ceny ulozenej v COST_TABLE a novej vypocitanej ceny
@@ -247,20 +247,22 @@ if __name__ == '__main__':
     print("\nOptimalna cena: ", cost_tab.at[1, n])  # optimalna cena hladania
     tree = build_tree(keys, root_tab, 1, n)  # vytvorenie stromu
 
-    sleep(0.5)
-    print(colored("\n*************** Urovne stromu: ****************", color="cyan"))
-    tree.print_levels(save_to_file=True)
-    sleep(0.5)
+    # sleep(0.5)
+    # print(colored("\n*************** Urovne stromu: ****************", color="cyan"))
+    # tree.print_levels(save_to_file=True)
+    # sleep(0.5)
 
     # pocet porovnani
 
     print(colored("\n*************** Pocet porovnani ****************\n", color="cyan"))
+    #
+    # print("-- test --\n")
+    # test_words = ["slaughter", "the", "i", "lasagna", "aaagh", "maths", "banana", "must"]
+    # for word in test_words:
+    #     comparisons = pocet_porovnani(tree, word, print_results=False)
+    #     print("   " + word + ":", colored(comparisons, "green", attrs=["bold"]))
+    #
+    # print("\n-- vsetky slova z dictionary.txt --")
+    # search_all(tree, words)
 
-    print("-- test --\n")
-    test_words = ["slaughter", "the", "i", "lasagna", "aaagh", "maths", "banana", "must"]
-    for word in test_words:
-        comparisons = pocet_porovnani(tree, word, print_results=False)
-        print("   " + word + ":", colored(comparisons, "green", attrs=["bold"]))
-
-    print("\n-- vsetky slova z dictionary.txt --")
-    search_all(tree, words)
+    print(pocet_porovnani(tree, "make"))
