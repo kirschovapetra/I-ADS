@@ -1,14 +1,23 @@
 from collections import defaultdict
 
 
-# pridanie hrany
-def add_edge(edges_dict, source, destination):
-    if destination not in edges_dict[source]:
-        edges_dict[source].append(destination)
+def add_edge(edges, source, destination):
+    """
+    Pridanie novej hrany
+    :param edges: hrany = dict {id uzla : susediace uzly[] }
+    :param source: zdrojovy vrchol
+    :param destination: cielovy vrchol
+    """
+    if destination not in edges[source]:
+        edges[source].append(destination)
 
 
-# transpozicia hran
 def transpose(edges):
+    """
+    Transpozicia hran
+    :param edges: hrany = dict {id uzla : susediace uzly[] }
+    :return: transposed_edges (transponovane hrany)
+    """
     transposed_edges = defaultdict(list)
     for i in edges:
         for j in edges[i]:
@@ -19,69 +28,90 @@ def transpose(edges):
 class Graph:
 
     def __init__(self, nb_var, nb_clauses, literalsA, literalsB):
-        self.nb_var = nb_var
-        self.nb_clauses = nb_clauses
-        self.literalsA = literalsA
-        self.literalsB = literalsB
-        self.edges = self.fill_graph()  # {id, list of adj vertices [] }
+        self.nb_var = nb_var            # pocet premennych
+        self.nb_clauses = nb_clauses    # pocet klauzul
+        self.literalsA = literalsA      # literaly #1 v klauzulach
+        self.literalsB = literalsB      # literaly #2 v klauzulach
+        self.edges = self.fill_graph()  # hrany = dict {id uzla : susediace uzly[] }
 
-    # naplnenie grafu hranami
     def fill_graph(self):
+        """
+        Prevod na implicative normal form, naplnenie grafu
+        A v B  <=>  (-A => B) & (-B => A)
+        :return: edges
+        """
+
+        # inicializacia hran
         edges = defaultdict(list)
+        for i in range(self.nb_var * 2):
+            edges[i + 1] = []
 
         for i in range(self.nb_clauses):
-            # A v B  --->  ( -A => B ) & ( -B => A )
+            ''' normalny tvar:
+                * vo formule X > 0 (normalne) ... ostava povodny tvar X
+                * vo formule X < 0 (negovane) ... mapuje sa na (nb_var - X) '''
             A = self.literalsA[i] if self.literalsA[i] > 0 else (self.nb_var - self.literalsA[i])
             B = self.literalsB[i] if self.literalsB[i] > 0 else (self.nb_var - self.literalsB[i])
+            ''' negacia:
+                * vo formule X > 0 (normalne) ... mapuje sa na (nb_var + X)
+                * vo formule X < 0 (negovane) ... mapuje sa na (-X) '''
             A_neg = (self.nb_var + self.literalsA[i]) if self.literalsA[i] > 0 else (-self.literalsA[i])
             B_neg = (self.nb_var + self.literalsB[i]) if self.literalsB[i] > 0 else (-self.literalsB[i])
 
-            add_edge(edges, A_neg, B)
-            add_edge(edges, B_neg, A)
+            add_edge(edges, A_neg, B)  # (-A => B)
+            add_edge(edges, B_neg, A)  # (-B => A)
 
         return edges
 
-    # 1. DFS cez graf - naplni sa stack
     def DFS1_fill_stack(self, destination, visited, vertices_stack):
+        """
+        1. krok = DFS cez graf - naplni sa stack
+        :param destination: cielovy vrchol
+        :param visited: dict {id vrcholu: ci bol navstiveny (True/False)}
+        :param vertices_stack: stack vrcholov
+        """
 
         if visited[destination]:
             return
 
         visited[destination] = True
-
         for i in self.edges[destination]:
             self.DFS1_fill_stack(i, visited, vertices_stack)
 
         vertices_stack.append(destination)
 
-    # 2. DFS cez transponovany graf - naplni sa SCC
     def DFS2_fill_SCC(self, SCC, edges_transp, source, component_id):
+        """
+        # 2 krok = DFS cez transponovany graf - naplni sa SCC
+        :param SCC: dict {id vrcholu: id SCC, do ktoreho patri}
+        :param edges_transp: transponovane hrany
+        :param source: zdrojovy vrchol
+        :param component_id: id aktualneho SCC
+        """
+
         SCC[source] = component_id
         for destination in edges_transp[source]:
             if SCC[destination] == -1:
                 self.DFS2_fill_SCC(SCC, edges_transp, destination, component_id)
 
-    # riesenie SAT - Kosaraju's algorithm
     def is_2SAT(self):
-
-        nb_vertices = self.nb_var * 2
-        vertices_stack = []
-
-        # keys = self.edges.keys()
-        visited = dict([(k, False) for k in sorted(self.edges.keys())])
+        """
+        riesenie SAT - Kosaraju's algorithm
+        :return:  True/False (splnitelna/nesplnitelna), assignment (priradenie pravd. hodnot)
+        """
 
         ''' ************* 1. DFS prechod cez graf, naplneni sa stack[] ************** '''
 
-        for i in sorted(visited.keys()):
+        visited = dict([(k, False) for k in sorted(self.edges.keys())])
+        vertices_stack = []
+        for i in visited.keys():
             if not visited[i]:
                 self.DFS1_fill_stack(i, visited, vertices_stack)
 
         ''' ******** 2. DFS prechod cez transponovany graf, naplni sa SCC[] ******** '''
 
-        # comp.assign(n, -1);
-        SCC = dict([(k, -1) for k in sorted(self.edges.keys())])
-
         component_id = 0
+        SCC = dict([(k, -1) for k in sorted(self.edges.keys())])
         while len(vertices_stack) > 0:
             source = vertices_stack.pop()  # zoberie sa z vrchu zasobnika
             if SCC[source] == -1:
@@ -92,40 +122,8 @@ class Graph:
 
         assignment = [False] * self.nb_var
         for i in range(1, self.nb_var + 1):
-
             if SCC[i] == SCC[i + self.nb_var]:
                 return False, []
-
             assignment[i - 1] = SCC[i] > SCC[i + self.nb_var]
 
         return True, assignment
-
-    # depth-first search
-    # def dfs(self, destination, visited):
-    #     visited[destination] = True
-    #     print(destination, end=' ')
-    #     for i in self.edges[destination]:
-    #         if not visited[i]:
-    #             self.dfs(i, visited)
-
-    # vypis strongly-connected komponentov
-    # def print_SCC(self):
-    #
-    #     nb_vertices = self.nb_var * 2
-    #     stack = []
-    #
-    #     # 1. krok - naplnenie stacku
-    #     visited = [False] * nb_vertices
-    #     for i in range(nb_vertices):
-    #         if not visited[i]:
-    #             self.DFS1_fill_stack(i, visited, stack)
-    #
-    #     # 2. krok - naplnenie a vypis SCC
-    #     graph_trans = self.transpose()
-    #     visited = [False] * nb_vertices
-    #     while stack:
-    #         i = stack.pop()
-    #         if not visited[i]:
-    #             print("{ ", end="")
-    #             graph_trans.dfs(i, visited)
-    #             print("}")

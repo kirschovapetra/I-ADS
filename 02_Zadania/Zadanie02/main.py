@@ -179,4 +179,4 @@ def main(filename_read, filename_write):
 
 
 if __name__ == '__main__':
-    main("predmety.txt", "outPredmety.txt")
+    main("predmety.txt", "out.txt")
