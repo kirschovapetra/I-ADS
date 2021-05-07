@@ -41,7 +41,7 @@ class Graph:
         :return: edges
         """
 
-        # inicializacia hran
+        # inicializacia hran {id : list[]}
         edges = defaultdict(list)
         for i in range(self.nb_var * 2):
             edges[i + 1] = []
@@ -100,9 +100,9 @@ class Graph:
         :return:  True/False (splnitelna/nesplnitelna), assignment (priradenie pravd. hodnot)
         """
 
-        ''' ************* 1. DFS prechod cez graf, naplneni sa stack[] ************** '''
+        ''' ************** 1. DFS prechod cez graf, naplni sa stack[] ************** '''
 
-        visited = dict([(k, False) for k in sorted(self.edges.keys())])
+        visited = dict([(k, False) for k in sorted(self.edges.keys())])  # {id : False}
         vertices_stack = []
         for i in visited.keys():
             if not visited[i]:
@@ -111,7 +111,7 @@ class Graph:
         ''' ******** 2. DFS prechod cez transponovany graf, naplni sa SCC[] ******** '''
 
         component_id = 0
-        SCC = dict([(k, -1) for k in sorted(self.edges.keys())])
+        SCC = dict([(k, -1) for k in sorted(self.edges.keys())])  # {id : -1}
         while len(vertices_stack) > 0:
             source = vertices_stack.pop()  # zoberie sa z vrchu zasobnika
             if SCC[source] == -1:
@@ -122,7 +122,7 @@ class Graph:
 
         assignment = [False] * self.nb_var
         for i in range(1, self.nb_var + 1):
-            if SCC[i] == SCC[i + self.nb_var]:
+            if SCC[i] == SCC[i + self.nb_var]:  # X = -X => nesplnitelna
                 return False, []
             assignment[i - 1] = SCC[i] > SCC[i + self.nb_var]
 

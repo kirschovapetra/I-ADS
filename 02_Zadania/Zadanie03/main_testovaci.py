@@ -92,6 +92,26 @@ def print_results(result, assignment):
         print(("PRAVDA     <-- x" + str(i+1)) if value else "NEPRAVDA   <-- x" + str(i+1))
 
 
+def test_TODO_DEL():
+    main("sat.txt")   # sat T F
+    main("sat1.txt")  # sat T F T F
+    main("sat2.txt")  # unsat
+    main("sat3.txt")  # sat T T T
+    main("sat4.txt")  # unsat
+
+    main("sat5.txt")  # sat T F T T F F T F T
+    main("sat6.txt")  # sat F T
+    main("sat7.txt")  # sat T F F T F
+    main("sat8.txt")  # sat F T
+    main("sat9.txt")  # unsat
+
+    main("sat10.txt")  # sat T T T
+    main("sat11.txt")  # unsat
+    main("sat12.txt")  # unsat
+    main("sat13.txt")  # unsat
+    main("sat14.txt")  # sat T T T T T T T
+
+
 def main(filename):
     nb_var, nb_clauses, litA, litB = load(filename)
     # vytvorenie grafu
@@ -104,5 +124,6 @@ def main(filename):
 
 
 if __name__ == '__main__':
-    main("sat.txt")  # sat T F
+    # main("sat.txt")  # sat T F
+    test_TODO_DEL()
 
