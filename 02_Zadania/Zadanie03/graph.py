@@ -16,7 +16,7 @@ def transpose(edges):
     """
     Transpozicia hran
     :param edges: hrany = dict {id uzla : susediace uzly[] }
-    :return: transposed_edges (transponovane hrany)
+    :return: transposed_edges
     """
     transposed_edges = defaultdict(list)
     for i in edges:
@@ -122,7 +122,7 @@ class Graph:
 
         assignment = [False] * self.nb_var
         for i in range(1, self.nb_var + 1):
-            if SCC[i] == SCC[i + self.nb_var]:  # X = -X => nesplnitelna
+            if SCC[i] == SCC[i + self.nb_var]:  # X == -X => nesplnitelna
                 return False, []
             assignment[i - 1] = SCC[i] > SCC[i + self.nb_var]
 

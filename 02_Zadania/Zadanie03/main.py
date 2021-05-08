@@ -38,14 +38,21 @@ def load(filename):
     """
 
     print(colored("\n-- " + filename + " --", color="cyan"))
+
     with open(filename, "r") as f:
-        file_content = [x.strip() for x in f.readlines()]
+        lines = f.read().strip().split("\n")
+
+    # konvert na int
+    file_content = [x.strip() for x in lines]
     file_content = pd.Series(file_content).str.split()
+    file_content = [list(map(int, x)) for x in file_content]
+
+    if len(file_content[0]) < 2:
+        raise ValueError("Nespravny format vstupneho suboru")
 
     # pocet premennych a klauzul
-    nb_var = int(file_content[0][0])
-    nb_clauses = int(file_content[0][1])
-
+    nb_var = file_content[0][0]
+    nb_clauses = file_content[0][1]
     print("- nbvar:", nb_var)
     print("- nbclauses:", nb_clauses)
 
@@ -53,9 +60,11 @@ def load(filename):
     litA = []
     litB = []
     for i, row in enumerate(file_content[1:]):
+        if row[-1] != 0 or len(row) > 3:
+            raise ValueError("Nespravny format vstupneho suboru")
         # (A v B) alebo (A v A)
-        litA.append(int(row[0]))
-        litB.append(int(row[0]) if len(row) == 2 else int(row[1]))
+        litA.append(row[0])
+        litB.append(row[0] if len(row) == 2 else row[1])
 
     return nb_var, nb_clauses, litA, litB
 
@@ -81,7 +90,6 @@ def print_results(result, assignment):
     Vypis vysledku SAT
     :param result: splnitelost true/false
     :param assignment: priradenie bool hodnot premennym
-    :return:
     """
     if result:
         print(colored("SPLNITEĽNÁ", color="green"))
@@ -93,16 +101,17 @@ def print_results(result, assignment):
 
 
 def main(filename):
-    nb_var, nb_clauses, litA, litB = load(filename)
-    # vytvorenie grafu
-    graph = Graph(nb_var, nb_clauses, litA, litB)
-    # vysledky
-    result, assignment = graph.is_2SAT()
-    # vypis
-    print_formula([(litA[i], litB[i]) for i in range(nb_clauses)])
-    print_results(result, assignment)
+    try:
+        # nacitanie suboru, graf
+        nb_var, nb_clauses, litA, litB = load(filename)
+        graph = Graph(nb_var, nb_clauses, litA, litB)
+        # vysledky
+        result, assignment = graph.is_2SAT()
+        print_formula([(litA[i], litB[i]) for i in range(nb_clauses)])
+        print_results(result, assignment)
+    except ValueError as err:
+        print(colored(err, color="red"))
 
 
 if __name__ == '__main__':
     main("sat.txt")  # sat T F
-
