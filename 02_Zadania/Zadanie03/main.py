@@ -114,4 +114,4 @@ def main(filename):
 
 
 if __name__ == '__main__':
-    main("sat.txt")  # sat T F
+    main("priklad3.txt")

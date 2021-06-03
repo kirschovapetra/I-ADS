@@ -58,13 +58,15 @@ def load(filename):
     :param filename: nazov
     :return: pole predmetov, maximalna vaha, maximalny pocet krehkych predmetov
     """
-    with open(filename) as f:
-        file_content = [x.strip() for x in f.readlines()]
+    with open(filename, "r") as f:
+        lines = f.read().strip().split("\n")
+
+    file_content = [x.strip() for x in lines]
 
     W = int(file_content[1])
     T = int(file_content[2])
 
-    file_content = pd.Series(file_content[3:]).str.split(' ')
+    file_content = pd.Series(file_content[3:]).str.split()
 
     for i in file_content.index:
         file_content[i] = list(map(int, file_content[i]))
@@ -105,7 +107,7 @@ def get_items(KNAPSACK, items, max_weight, max_fragile):
     :param max_weight: maximalna vaha
     :return: pole predmetov v ruksaku
     """
-
+    # KNAPSACK[n, max_weight, max_fragile]
     w = max_weight
     f = max_fragile
     n = len(items)
@@ -179,4 +181,4 @@ def main(filename_read, filename_write):
 
 
 if __name__ == '__main__':
-    main("predmety.txt", "out.txt")
+    main("test/items10.txt", "outx.txt")
